@@ -1,0 +1,64 @@
+===================== Authentication Filter =======================
+
+https://dotnettutorials.net/lesson/customizing-authentication-filter-mvc/
+
+1. add authentication tag in web.config
+	<authentication mode="Forms">
+      <forms loginUrl="/Home/Login"></forms>
+	</authentication>
+	
+2. create model class
+
+3. create empty controller then create view
+
+4. create folder in project (Name :- Filter)
+
+5. create one class and extend with ActionFilterAttribute, IAuthenticationFilter
+
+6. implement required methods 
+	1. OnAuthentication(AuthenticationContext filterContext)
+	2. OnAuthenticationChallenge(AuthenticationChallengeContext )
+	
+7. specify filter class name on above action method [<<name>>]
+
+
+===================== Authorization Filter =======================
+https://www.c-sharpcorner.com/article/custom-authorization-filter-in-mvc-with-an-example/
+
+1. create project
+
+2. create model class (table fields)
+
+3. create context class
+
+4. specify connection string in web.config file
+
+5. create empty controller
+
+6. create login view
+
+7. create custom authentication filter class
+
+8. create custom authorization filter class and extend with AuthorizeAttribute
+
+9. specify authentication filter class name on above controller class [<<name>>]
+
+10. specify authorization filter class name on above action method [<<name>>]
+
+
+=================================== CRUD Using AJAX ===================================
+https://www.c-sharpcorner.com/article/crud-operation-in-asp-net-mvc-using-ajax-and-bootstrap/
+- Ignore the procedure creation
+
+1. create the MVC project
+
+2. Create one table then create model class of table fields
+
+3. create one class that contain methods of all crud operation
+
+4. create one empty controller
+	- Prepare JSON response
+
+
+================================== Multilingual ==================================
+https://www.c-sharpcorner.com/UploadFile/4d9083/globalization-and-localization-in-Asp-Net-mvc-4/
