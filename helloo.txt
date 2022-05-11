@@ -1,0 +1,888 @@
+Gesture
+------------------------------
+GestureDetector gestureDetector;
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    gestureDetector=new GestureDetector(this, new GestureListener());
+}
+
+---
+private class GestureListener extends GestureDetector.SimpleOnGestureListener{
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onSingleTapUp() called",Toast.LENGTH_SHORT).show();
+        return super.onSingleTapUp(e);
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onLongPress() called",Toast.LENGTH_SHORT).show();
+        super.onLongPress(e);
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        Toast.makeText(getApplicationContext(),"onScroll() called",Toast.LENGTH_SHORT).show();
+        return super.onScroll(e1, e2, distanceX, distanceY);
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        Toast.makeText(getApplicationContext(),"onFling() called",Toast.LENGTH_SHORT).show();
+        return super.onFling(e1, e2, velocityX, velocityY);
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onShowPress() called",Toast.LENGTH_SHORT).show();
+        super.onShowPress(e);
+    }
+
+    @Override
+    public boolean onDown(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onDown() called",Toast.LENGTH_SHORT).show();
+        return super.onDown(e);
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onDoubleTap() called",Toast.LENGTH_SHORT).show();
+        return super.onDoubleTap(e);
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onDoubleTapEvent() called",Toast.LENGTH_SHORT).show();
+        return super.onDoubleTapEvent(e);
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+        Toast.makeText(getApplicationContext(),"onSingleTapConfirmed() called",Toast.LENGTH_SHORT).show();
+        return super.onSingleTapConfirmed(e);
+    }
+}
+-------------
+
+public boolean onTouchEvent(MotionEvent event) {
+    gestureDetector.onTouchEvent(event);
+    return super.onTouchEvent(event);
+}
+---------------------------------------
+To request pointer capture
+
+@Override
+public void onClick(View view) {
+    view.requestPointerCapture();
+}
+--------------------------
+
+private int mActivePointerId;
+public boolean onTouchEvent(MotionEvent event) {
+     // Get the pointer ID
+    mActivePointerId = event.getPointerId(0);
+    // Use the pointer ID to find the index of the active pointer and fetch its position
+     int pointerIndex = event.findPointerIndex(mActivePointerId);
+     // Get the pointer's current position
+    float x = event.getX(pointerIndex);
+    float y = event.getY(pointerIndex);
+   }
+-------------------------------
+Get motion event actions
+
+int action = MotionEventCompat.getActionMasked(event);
+// Get the index of the pointer associated with the action.
+int index = MotionEventCompat.getActionIndex(event);
+int xPos = -1;
+int yPos = -1;
+
+Log.d(DEBUG_TAG,"The action is " + actionToString(action));
+
+if (event.getPointerCount() > 1) {
+    Log.d(DEBUG_TAG,"Multitouch event");
+    // The coordinates of the current screen contact, relative to
+    // the responding View or Activity.
+    xPos = (int)MotionEventCompat.getX(event, index);
+    yPos = (int)MotionEventCompat.getY(event, index);
+
+} else {
+    // Single touch event
+    Log.d(DEBUG_TAG,"Single touch event");
+    xPos = (int)MotionEventCompat.getX(event, index);
+    yPos = (int)MotionEventCompat.getY(event, index);
+}
+...
+
+// Given an action int, returns a string description
+public static String actionToString(int action) {
+    switch (action) {
+
+        case MotionEvent.ACTION_DOWN: return "Down";
+        case MotionEvent.ACTION_MOVE: return "Move";
+        case MotionEvent.ACTION_POINTER_DOWN: return "Pointer Down";
+        case MotionEvent.ACTION_UP: return "Up";
+        case MotionEvent.ACTION_POINTER_UP: return "Pointer Up";
+        case MotionEvent.ACTION_OUTSIDE: return "Outside";
+        case MotionEvent.ACTION_CANCEL: return "Cancel";
+    }
+    return "";
+}
+-------------------------------
+Pinch to Zoom using ScaleGestureDetector
+
+public class MainActivity extends AppCompatActivity {
+    ImageView iv;
+    Matrix matrix=new Matrix();
+    float scale=1f;
+    ScaleGestureDetector SGD;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        iv = (ImageView) findViewById(R.id.imageView);
+        SGD=new ScaleGestureDetector(this, new ScaleListener());
+    }
+private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+           scale=scale*detector.getScaleFactor();
+           scale=Math.max(0.1f,Math.min(scale,5f));
+           matrix.setScale(scale, scale);
+           iv.setImageMatrix(matrix);
+           return true;
+        }
+ @Override
+    public boolean onScaleBegin(ScaleGestureDetector detector)  {
+        // do something when scale begin
+    }
+    @Override
+    public void onScaleEnd(ScaleGestureDetector detector) {
+        // do something when scale end
+}
+    }
+@Override
+    public boolean onTouchEvent(MotionEvent event) {
+        SGD.onTouchEvent(event);
+        return true;
+    }
+----------------------------------------
+
+Finding distance between two fingures/pointers
+
+
+public float distance(MotionEvent event, int first, int second) {
+  if (event.getPointerCount() >= 2) {
+    final float x = event.getX(first) - event.getX(second);
+    final float y = event.getY(first) - event.getY(second);
+    return (float) Math.sqrt(x * x + y * y);
+  } else {
+    return 0;
+  }
+}
+--------------------------------------------------------------------------------------------
+Menu [under menu folder creat menu.xml]
+
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MyDashboard">
+    <item android:id="@+id/action_settings"
+        android:title="@string/action_settings"
+        android:orderInCategory="100"
+        app:showAsAction="never"/>
+    <item android:id="@+id/action_help"
+        android:title="@string/action_help"
+        android:orderInCategory="100"
+        app:showAsAction="never"/>
+    <item android:id="@+id/action_update"
+        android:title="@string/action_update"
+        android:orderInCategory="100"
+        app:showAsAction="never"/>
+    <item android:title="add"
+        android:id="@+id/action_add"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_action_add"/>
+</menu>
+----------------------
+Inflact it
+
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the menu; this adds items to the action bar if it is present.
+    getMenuInflater().inflate(R.menu.menu_main, menu);
+    return true;
+}
+
+public boolean onOptionsItemSelected(MenuItem item) {
+        int item_id=item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.action_settings:  {
+                return true;
+            }
+            case R.id.action_update: {
+                startActivity(new Intent(this, Update.class));
+                return true;
+            }
+
+            case R.id.action_add: {
+                startActivity(new Intent(this, AddCategories.class));
+                return true;
+            }
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+--------------------------------------------------------------------------------------------
+Room Database
+
+dependencies {
+    def room_version = "2.2.5"
+   
+    //room database dependencies
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    testImplementation "androidx.room:room-testing:$room_version"
+}
+-----------------
+@Entity
+public class User {
+  @PrimaryKey(autoGenerate = true)
+  private int id;
+ 
+  @ColumnInfo(name = "first_name")
+  private String firstName;
+ 
+  @ColumnInfo(name = "last_name")
+  private String lastName;
+ 
+  @ColumnInfo(name = "phone")
+  private String phone;
+ 
+  @ColumnInfo(name = "email")
+  private String email;
+ 
+  @ColumnInfo(name = "address")
+  private String address;
+ 
+  public int getId() {
+    return id;
+  }
+ 
+  public void setId(int id) {
+    this.id = id;
+  }
+ 
+  public String getFirstName() {
+    return firstName;
+  }
+ 
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+ 
+  public String getLastName() {
+    return lastName;
+  }
+ 
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
+ 
+  public String getPhone() {
+    return phone;
+  }
+ 
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+ 
+  public String getEmail() {
+    return email;
+  }
+ 
+  public void setEmail(String email) {
+    this.email = email;
+  }
+ 
+  public String getAddress() {
+    return address;
+  }
+ 
+  public void setAddress(String address) {
+    this.address = address;
+  }
+}
+
+--------------------------
+@Dao
+public interface UserDao {
+  @Insert
+  Long insert(User u);
+     
+  @Query("SELECT * FROM `User` ORDER BY `id` DESC")
+  List<User> getAllUsers();
+     
+  @Query("SELECT * FROM `User` WHERE `id` =:id")
+  User getUser(int id);
+     
+  @Update
+  void update(User u);
+     
+  @Delete
+  void delete(User u);
+}
+-----------------------------
+@Database(entities = {User.class}, version = 1)
+
+public abstract class UserDatabase extends RoomDatabase
+ {
+  public abstract UserDao userDao();
+ 
+  private static UserDatabase INSTANCE;
+ 
+  public static UserDatabase getAppDatabase(Context context) {
+    if (INSTANCE == null) {
+      INSTANCE = Room.databaseBuilder(context.getApplicationContext(), UserDatabase.class, "user-database").build();
+    }
+    return INSTANCE;
+  }
+ 
+  public static void destroyInstance() {
+    INSTANCE = null;
+  }
+}
+--------------------------
+1. Insert 
+//get the database instance
+UserDatabase ud = UserDatabase.getAppDatabase(c.get());
+ 
+//init the entity
+User u = new User();
+u.setFirstName("John");
+u.setLastName("Doe");
+u.setPhone("1234567890");
+u.setEmail("johndoe@website.com");
+u.setAddress("Unknown");
+ 
+//init dao and perform operation
+UserDao dao = ud.userDao();
+dao.insert(u);
+-------------------
+2. Update
+//get the database instance
+UserDatabase ud = UserDatabase.getAppDatabase(c.get());
+ 
+//init the entity
+User u = new User();
+u.setId(3);
+u.setFirstName("Jane");
+u.setLastName("Doe");
+u.setPhone("0987654321");
+u.setEmail("janedoe@website.com");
+u.setAddress("Unknown");
+ 
+//init dao and perform operation
+UserDao dao = ud.userDao();
+dao.update(u);
+-------------------------
+3. Delete
+//get the database instance
+UserDatabase ud = UserDatabase.getAppDatabase(c.get());
+ 
+//init the entity
+User u = new User();
+u.setId(3);
+u.setFirstName("Jane");
+u.setLastName("Doe");
+u.setPhone("0987654321");
+u.setEmail("janedoe@website.com");
+u.setAddress("Unknown");
+ 
+//init dao and perform operation
+UserDao dao = ud.userDao();
+dao.delete(u);
+----------------------
+4. Retrieve/Read 
+//get the database instance
+UserDatabase ud = UserDatabase.getAppDatabase(c.get());
+ 
+//init dao and perform operation
+UserDao dao = ud.userDao();
+  //get all users
+List<User> users = dao.getAllUsers();
+  //get single user by id
+User u = dao.getUser(3);
+
+--------------------------
+Service
+
+start nd stop
+
+public class PlayerService extends Service {
+
+    MediaPlayer mp;
+    public PlayerService() {
+        super();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Toast.makeText(this, "Service was Created", Toast.LENGTH_LONG).show();
+        mp = MediaPlayer.create(getApplicationContext(),R.raw.myaudio);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        mp.start();
+        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mp.stop();
+        Toast.makeText(this, "Service Stopped", Toast.LENGTH_LONG).show();
+
+    }
+}
+
+----
+manifest
+
+<service android:name=".PlayerService" android:enabled="true" >
+</service>
+------------------
+public class MainActivity extends AppCompatActivity {
+    Button play, stop;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        play = findViewById(R.id.play);
+        stop = findViewById(R.id.Stop);
+        play.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent service = new Intent(MainActivity.this, PlayerService.class);
+                startService(service);
+            }
+        });
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent service = new Intent(MainActivity.this, PlayerService.class);
+                stopService(service);
+            }
+        });
+    }
+}
+-------------------------------
+download with perogress
+
+public class AsynckThreadActivityEx extends AppCompatActivity {
+    Button btndownload;
+    TextView txt1;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_asynck_thread_ex);
+
+        btndownload = findViewById(R.id.Download);
+        txt1 = findViewById(R.id.data);
+    }
+    public void Download(View view)
+    {
+        MyTask myTask = new MyTask(this,txt1,btndownload);
+        myTask.execute();
+        btndownload.setEnabled(false);
+    }
+}
+
+Step 2 : Create MyTask which extends AsyncTask :
+
+public class MyTask extends AsyncTask<Void,Integer,String> {
+
+    TextView textView;
+    Button button;
+    Context context;
+    ProgressDialog progressDialog;
+
+    MyTask(Context context,TextView textView,Button button)
+    {
+        this.context = context;
+        this.textView = textView;
+        this.button = button;
+    }
+    @Override
+    protected void onPreExecute() {
+       progressDialog = new ProgressDialog(context);
+        progressDialog.setTitle("Downloading in progress...");
+        progressDialog.setMax(10);
+       progressDialog.setProgress(0);
+        progressDialog.show();
+    }
+
+    @Override
+    protected void onPostExecute(String s) {
+        textView.setText(s);
+        button.setEnabled(true);
+       progressDialog.hide();
+    }
+
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+        progressDialog.setProgress(values[0]);
+        textView.setText("Download in progress");
+    }
+
+    @Override
+    protected String doInBackground(Void... voids) {
+        int i=0;
+
+        synchronized (this)
+        {
+            while(i<10)
+            {
+                try {
+                    wait(1000);
+                    i++;
+                    publishProgress(i);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return "Download Complete";
+    }
+}
+----------------------
+Example : Simple service to send Random Numbers whenever the Activity requests for it!
+main_layout.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/text_service"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Service Example"
+        android:layout_marginTop="10dp" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:id="@+id/start"
+        android:text="Request NUmber"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30dp"
+        android:layout_gravity="center"
+        android:id="@+id/serviceText"
+        android:text="Center Text"/>
+</LinearLayout>
+
+ServiceActivity.java
+public class ServiceActivity extends Activity{
+    BoundedService mBoundService;
+    Boolean mServiceBound = false;
+    Button startService;
+    TextView serviceText;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main_layout);
+        startService = (Button) findViewById(R.id.start);
+        serviceText = (TextView) findViewById(R.id.serviceText);
+
+        startService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int randomNuber = mBoundService.genRandomNumber();
+                serviceText.setText(String.valueOf(randomNuber));
+            }
+        });
+
+    }
+    @Override
+    protected void onStart() {
+
+        startService(new Intent(this, BoundedService.class));
+        Intent intent = new Intent(this,BoundedService.class);
+        bindService(intent,mServiceConnection, Context.BIND_AUTO_CREATE);
+        super.onStart();
+    }
+    @Override
+    protected void onStop() {
+        unbindService(mServiceConnection);
+        stopService(new Intent(this,BoundedService.class));
+        super.onStop();
+    }
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            BoundedService.LocalBoundedService myBinder = (BoundedService.LocalBoundedService) service;
+            mBoundService = myBinder.getService();
+            mServiceBound = true;
+        }
+    };
+}
+BoundedService.java
+import android.app.Service;
+import android.content.Intent;
+import android.os.Binder;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
+
+import java.util.Random;
+
+public class BoundedService extends Service {
+    private IBinder mBinder =  new LocalBoundedService();
+    Random randomNumber = new Random();
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+    @Override
+    public boolean onUnbind(Intent intent) {
+
+        return true;
+    }
+    public int genRandomNumber()
+    {
+        return randomNumber.nextInt(10000);
+    }
+
+    public class LocalBoundedService extends Binder {
+        BoundedService getService() {
+            return BoundedService.this;
+        }
+    }
+}
+-----------------------------------
+AndroidManifest.xml
+
+<service android:name=".BoundedService" />
+---------------------
+Notification
+
+public class NotificationHelper {
+
+    private Context mContext;
+    private NotificationManager mNotificationManager;
+    private NotificationCompat.Builder mBuilder;
+    public static final String NOTIFICATION_CHANNEL_ID = "10001";
+
+    public NotificationHelper(Context context) {
+        mContext = context;
+    }
+
+    /**
+     * Create and push the notification
+     */
+    public void createNotification(String title, String message)
+    {
+        /**Creates an explicit intent for an Activity in your app**/
+        Intent resultIntent = new Intent(mContext , MainActivity.class);
+        resultIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(mContext,
+                0 /* Request code */, resultIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder = new NotificationCompat.Builder(mContext);
+        mBuilder.setSmallIcon(R.mipmap.ic_launcher);
+        mBuilder.setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(false)
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setContentIntent(resultPendingIntent);
+
+        mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+        {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            assert mNotificationManager != null;
+            mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+            mNotificationManager.createNotificationChannel(notificationChannel);
+        }
+        assert mNotificationManager != null;
+        mNotificationManager.notify(0 /* Request Code */, mBuilder.build());
+    }
+}
+Step 2: Notification Activity 
+public class NotificationHelper {
+
+    private Context mContext;
+    private NotificationManager mNotificationManager;
+    private NotificationCompat.Builder mBuilder;
+    public static final String NOTIFICATION_CHANNEL_ID = "10001";
+
+    public NotificationHelper(Context context) {
+        mContext = context;
+    }
+
+    /**
+     * Create and push the notification
+     */
+    public void createNotification(String title, String message)
+    {
+        /**Creates an explicit intent for an Activity in your app**/
+        Intent resultIntent = new Intent(mContext , MainActivity.class);
+        resultIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(mContext,
+                0 /* Request code */, resultIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder = new NotificationCompat.Builder(mContext);
+        mBuilder.setSmallIcon(R.mipmap.ic_launcher);
+        mBuilder.setContentTitle(title)
+                .setContentText(message)
+                .setAutoCancel(false)
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setContentIntent(resultPendingIntent);
+
+        mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+        {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "NOTIFICATION_CHANNEL_NAME", importance);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            assert mNotificationManager != null;
+            mBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
+            mNotificationManager.createNotificationChannel(notificationChannel);
+        }
+        assert mNotificationManager != null;
+        mNotificationManager.notify(0 /* Request Code */, mBuilder.build());
+    }
+}
+------------------------
+Alarm
+
+AlarmManager alarmManager= (AlarmManager) 
+context.getSystemService(ALARM_SERVICE);
+---------------------------
+public class MyReceiver extends BroadcastReceiver {
+
+@Override
+public void onReceive(Context context, Intent intent) {
+
+Toast.makeText(context, "Alarm Triggered", Toast.LENGTH_SHORT).show();
+
+}
+}
+--------------------------------
+public static final int REQUEST_CODE=101;
+
+Intent intent=new Intent(this,MyReceiver.class);
+
+PendingIntent.getBroadcast(this,REQUEST_CODE,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+-----------------------------------
+AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+Intent intent = new Intent(this, MyReceiver.class);
+
+PendingIntent pendingIntent = PendingIntent.getBroadcast(this, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+-----------------------------------------------
+alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis() + AlarmManager.INTERVAL_HOUR, AlarmManager.INTERVAL_HOUR, pendingIntent);
+-----------------------------------------
+AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+Intent intent = new Intent(this, MyReceiver.class);
+
+PendingIntent pendingIntent = PendingIntent.getBroadcast(this, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+Calendar calendar = Calendar.getInstance();
+
+calendar.setTimeInMillis(System.currentTimeMillis());
+calendar.set(Calendar.HOUR_OF_DAY, 8);
+calendar.set(Calendar.MINUTE, 30);
+---------------------------
+alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+-----------------------------------------
+AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+Intent intent = new Intent(this, MyReceiver.class);
+PendingIntent pendingIntent = PendingIntent.getBroadcast(this, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//This alarm will trigger once approximately after 1 hour and
+alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, System.currentTimeMillis() + AlarmManager.INTERVAL_HOUR, pendingIntent);
+-------------------------------------------
+Canceling the alarm
+
+public class AlarmActivity extends AppCompatActivity {
+    Button start;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_alarm);
+        start = findViewById(R.id.button);
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startAlert();
+            }
+        });
+    }
+    public void startAlert() {
+        EditText text = findViewById(R.id.time);
+        int i = Integer.parseInt(text.getText().toString());
+        Intent intent = new Intent(this, MyAlarmBroadCastReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), 234324243, intent, 0);
+        AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (i * 1000), pendingIntent);
+        Toast.makeText(this, "Alarm set in " + i + " seconds", Toast.LENGTH_LONG).show();
+    }
+
+}
+----------------------------------------
+register above file
+<receiver android:name=". MyAlarmBroadCastReceiver
+"/>
+-----------------------------------------
+public class MyAlarmBroadCastReceiver extends BroadcastReceiver {
+
+    MediaPlayer mp;
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        mp=MediaPlayer.create(context, R.raw.myaudio);
+        mp.start();
+        Toast.makeText(context, "Alarm Ringing....", Toast.LENGTH_LONG).show();
+    }
+}
+----------------------------------------------
